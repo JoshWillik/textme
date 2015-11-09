@@ -1,0 +1,74 @@
+#! /usr/bin/env node
+'use strict'
+
+const configPath = process.env.HOME + '/.textme.json'
+const fs = require('fs')
+const readline = require('readline')
+const exec = require('child_process').execSync
+const plivo = require('plivo')
+
+function readConfig () {
+  return new Promise((resolve, reject) => {
+    let data
+    try {
+      data = require(configPath)
+      resolve(data)
+    } catch (e) {
+      let rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      })
+      rl.question('Twilio Auth ID: ', authId => {
+        rl.question('Twilio Auth Token: ', authToken => {
+          rl.question('Your Number: ', yourNumber => {
+            rl.close()
+            data = {authId, authToken, yourNumber}
+            try {
+              fs.writeFileSync(configPath, JSON.stringify(data))
+            } catch (e) {
+              console.log('Error', e)
+              return reject(e)
+            }
+            resolve(data)
+          })
+        })
+      })
+    }
+  })
+}
+
+function getNumber (api) {
+  return new Promise(resolve => {
+    api.get_numbers({}, (status, numbers) => {
+      resolve(numbers.objects.filter(number => number.number_type === 'local')[0])
+    })
+  })
+}
+
+readConfig().then(data => {
+  const api = new plivo.RestAPI(data)
+
+  return getNumber(api).then(activeNumber => {
+    let payload = {}
+    try {
+      let output = exec(process.argv.slice(2).join(' ')).toString()
+      process.stdout.write(output)
+      payload = {
+        src: activeNumber.number,
+        dst: data.yourNumber,
+        text: process.argv[2] + ' command succeeded',
+      }
+    } catch (e) {
+      payload = {
+        src: activeNumber.number,
+        dst: data.yourNumber,
+        text: process.argv[2] + ' command failed',
+      }
+    }
+    api.send_message(payload, (status, res) => {
+      // console.log(status, res)
+    })
+  })
+}).catch(err => {
+  console.log('Error', err)
+})
