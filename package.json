@@ -1,0 +1,28 @@
+{
+  "name": "textme",
+  "version": "1.1.0",
+  "description": "Run a command and text yourself the result of the command",
+  "main": "bin/cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/JoshWillik/textme.git"
+  },
+  "keywords": [
+    "sms",
+    "cli",
+    "command"
+  ],
+  "author": "Josh Vanderwillik <joshwillik@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoshWillik/textme/issues"
+  },
+  "homepage": "https://github.com/JoshWillik/textme#readme",
+  "dependencies": {
+    "plivo": "^0.3.3"
+  },
+  "bin": "textme"
+}
